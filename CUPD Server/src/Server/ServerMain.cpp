@@ -118,6 +118,21 @@ void initServer()
 		exit(2);
 	}
 
+	std::string input;
+	std::cout << "Open server on PORT: ";
+	std::cin >> input;
+	int port = PORT;
+	
+	try
+	{
+		port = std::stoi(input);
+	}
+	catch (const std::invalid_argument& ia)
+	{
+		std::cerr << "Invalid argument: " << ia.what() << '\n';
+		exit(3);
+	}
+
 	serverSocket = SDLNet_UDP_Open(PORT);
 	if (!serverSocket)
 	{
@@ -126,7 +141,7 @@ void initServer()
 	}
 
 	// The main loop starts here
-	printf("Server running at port %i, awaiting for packets\n", PORT);
+	printf("Server running at port %i, awaiting for packets\n", port);
 }
 
 int main(int argc, char **argv)
@@ -312,10 +327,9 @@ void handleNetworkData(Clients &clients, UDPpacket* p)
 		}
 		if (senderClient != nullptr)
 		{
-
 			for each (Client* client in clients)
 			{
-				if (!(client->remoteIP.host == p->address.host && client->remoteIP.port == p->address.port))
+				if (!(client->remoteIP.host == senderClient->remoteIP.host && client->remoteIP.port == senderClient->remoteIP.port))
 				{
 					//printf("Sending message %s to %s:%s\n", packetString.c_str(), std::to_string(client->remoteIP.host).c_str(), std::to_string(client->remoteIP.port).c_str());
 					p->address = client->remoteIP;
@@ -331,6 +345,45 @@ void handleNetworkData(Clients &clients, UDPpacket* p)
 			printf("Packet had unidentifiable or no prefix\n");
 		}
 		//processMessage(p);
+	}
+	else if (compareTypes(packetType, PACKET_HELLO))
+	{
+		// Got a Snapshot
+		std::istringstream iss((char*)p->data);
+		std::vector<std::string> results((std::istream_iterator<std::string>(iss)),
+			std::istream_iterator<std::string>());
+		
+		
+		Client* senderClient = 0;
+
+		for each (Client* client in clients)
+		{
+			// Get the client ID
+			if (client->remoteIP.host == p->address.host && client->remoteIP.port == p->address.port)
+			{
+				senderClient = client;
+				break;
+			}
+		}
+		if (senderClient != nullptr)
+		{
+
+			// Create a packet containing the following:
+			// PacketType of SNAP | Client.ID | Position | RotationAngle
+			for each (Client* client in clients)
+			{
+				// Get the client ID
+				if (client->remoteIP.host == senderClient->remoteIP.host && client->remoteIP.port == senderClient->remoteIP.port)
+				{
+					senderClient = client;
+					break;
+				}
+			}
+			if (senderClient != nullptr)
+			{
+				senderClient->id = std::stoi(results[1]);
+			}
+		}
 	}
 }
 
