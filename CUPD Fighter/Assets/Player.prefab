@@ -249,6 +249,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rawMovementSpeed: 0.2
   runMultiplier: 1.5
+  shootScript: {fileID: 6421464832885117867}
 --- !u!54 &6421464833461250859
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -278,6 +279,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dummyPrefab: {fileID: 7706566789299114179, guid: 190c88a07a3f8934ea0ed71378960637,
+    type: 3}
+  bulletPrefab: {fileID: 8768640796633344645, guid: ccaa01cb8c5b40c42bed2fd41ece519e,
     type: 3}
   clientID: -1
   ipAddress: 

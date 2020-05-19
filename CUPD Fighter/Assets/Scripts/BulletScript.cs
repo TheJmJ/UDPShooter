@@ -32,6 +32,10 @@ public class BulletScript : MonoBehaviour
         if (Physics.Raycast(transform.position, transform.forward, out hit, 1f))
         {
             Debug.Log("Hit "+ hit.collider.transform.name + "! Killing myself, bye cruel world");
+            if(hit.collider.gameObject.GetComponent<Client>())
+            {
+                hit.collider.gameObject.GetComponent<PlayerMovement>().Respawn();
+            }
             Destroy(gameObject);
         }
 

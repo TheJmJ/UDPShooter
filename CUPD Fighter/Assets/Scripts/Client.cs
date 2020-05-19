@@ -12,9 +12,12 @@ public class Client : MonoBehaviour
     public static UInt16 PACKET_BYE = BitConverter.ToUInt16(Encoding.Unicode.GetBytes("BYE"), 0);
     public static UInt16 PACKET_SNAP = BitConverter.ToUInt16(Encoding.Unicode.GetBytes("SNAP"), 0);
     public static UInt16 PACKET_HIT = BitConverter.ToUInt16(Encoding.Unicode.GetBytes("HIT"), 0);
+    public static UInt16 PACKET_SPWN = BitConverter.ToUInt16(Encoding.Unicode.GetBytes("PWN"), 0);
     #endregion
 
     public GameObject dummyPrefab;
+    public GameObject bulletPrefab;
+
     Dictionary<int, GameObject> dummies = new Dictionary<int, GameObject>();
 
     NetCode netCode;
@@ -35,7 +38,7 @@ public class Client : MonoBehaviour
         netCode = new NetCode(ipAddress, port);
         UInt16 packetType = PACKET_HI;
         netCode.SendMessage(packetType.ToString());
-        Debug.Log(PACKET_ACK + " " + PACKET_BYE + " " + PACKET_SNAP + " " + PACKET_HIT + " " + PACKET_HI);
+        Debug.Log(PACKET_ACK + " " + PACKET_BYE + " " + PACKET_SNAP + " " + PACKET_HIT + " " + PACKET_HI + " " + PACKET_SPWN);
         isStarted = true;
     }
     private void Update()
@@ -57,6 +60,11 @@ public class Client : MonoBehaviour
         {
             ProcessPacket(netCode.lastReceivedUDPPacket);
             netCode.lastReceivedUDPPacket = "";
+        }
+
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            SendShoot();
         }
     }
 
@@ -93,6 +101,15 @@ public class Client : MonoBehaviour
                 netCode.SendMessage(message);
             }
         }
+        else if(results[0] == PACKET_SPWN.ToString())
+        {
+            // Results 1,2,3 are Position.XYZ
+            Vector3 position = new Vector3(float.Parse(results[1]), float.Parse(results[2]), float.Parse(results[3]));
+            // Results 4,5,6,7 are Rotation.XYZW
+            Quaternion rotation = new Quaternion(float.Parse(results[4]), float.Parse(results[5]), float.Parse(results[6]), float.Parse(results[7]));
+
+            Instantiate(bulletPrefab, position, rotation, null);
+        }
         else
         {
             //Debug.Log(packetType + "!=" + PACKET_SNAP.ToString());
@@ -110,4 +127,17 @@ public class Client : MonoBehaviour
 
         lastSnapshotSize = message.Length * sizeof(Char);
     }
+
+    void SendShoot()
+    {
+        UInt16 packetType = PACKET_SPWN;
+        string positionString = transform.position.x.ToString("F3") + " " + transform.position.y.ToString("F3") + " " + transform.position.z.ToString("F3");
+        string rotationString = transform.rotation.x.ToString("F2") + " " + transform.rotation.y.ToString("F2") + " " + transform.rotation.z.ToString("F2") + " " + transform.rotation.w.ToString("F2");
+
+        string message = packetType.ToString() + " " + positionString + " " + rotationString;
+        netCode.SendMessage(message);
+
+        //lastSnapshotSize = message.Length * sizeof(Char);
+    }
 }
+

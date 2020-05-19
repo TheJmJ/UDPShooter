@@ -7,17 +7,20 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] float rawMovementSpeed = 0.2f;
     [SerializeField] float runMultiplier = 1.5f;
     Vector3 direction;
+    Client client;
 
     float jumpTime;
     float jumpForce = 10f;
     float jumpCD = 2f;
 
+    public ShootScript shootScript;
 
     Rigidbody rb;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        client = GetComponent<Client>();
     }
 
     // Update is called once per frame
@@ -51,8 +54,16 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             jumpTime = Time.time;
         }
+        if(Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            shootScript.Shoot();
+        }
         transform.Translate(direction * movementSpeed, Space.Self);
         rb.AddForce(transform.InverseTransformDirection(direction) * movementSpeed);
 
+    }
+    public void Respawn()
+    {
+        transform.position = Vector3.zero;
     }
 }

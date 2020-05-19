@@ -30,6 +30,7 @@ char PACKET_BYE[2] = { '6','6' };
 char PACKET_SNAP[2] ={ '8','3' };
 char PACKET_HIT[2] = { '7','2' };
 char PACKET_HELLO[2] = { '7','8' };
+char PACKET_SPAWN[2] = { '8','0'};
 
 struct Vector3
 {
@@ -128,47 +129,6 @@ void initServer()
 	printf("Server running at port %i, awaiting for packets\n", PORT);
 }
 
-char* processMessage(UDPpacket* p)
-{
-	//We're sent the whole stream of data from the Packet
-
-	////GLOBAL STEPS
-	//Step 1:
-	// Check what type of a message it is with the prefix
-	//Step 2:
-	// Parse that into parts
-
-	std::string mString = (char*)p->data;
-	mString.resize(p->len);
-
-	char packetType[2] = { mString[0], mString[1] };
-
-	if (compareTypes(packetType, PACKET_SNAP))
-	{
-		//Step 3:
-		// We need to return the glyph's position and the message string
-		// 
-		printf("Server Received SnapShot\n");
-		return "Server Received ask for glyph!";
-	}
-	else if (compareTypes(packetType, PACKET_HIT))
-	{
-		//Step 3:
-		// We need to save  the glyph's position and the message string
-		// 
-		printf("Server Received \n");
-		return nullptr;
-	}
-	else
-	{
-		//std::cout << '\a';
-		printf("Packet had unidentifiable or no prefix\n");
-		return "Packet had unidentifiable or no prefix";
-	}
-
-	return nullptr;
-}
-
 int main(int argc, char **argv)
 {
 	initServer();
@@ -185,21 +145,21 @@ int main(int argc, char **argv)
 		unsigned int currentTime = SDL_GetTicks();
 		if (SDLNet_UDP_Recv(serverSocket, p) > 0)
 		{
-			printf("\nUDP Packet incoming\n");
+			//printf("\nUDP Packet incoming\n");
 			//printf("\tChan:  %d\n", p->channel);
 			//printf("\tData: %*.*s %s", 0, p->len, (char*)p->data);
 			//printf("\tData: %s", (char*)p->data);
-			std::cout << "\tData: ";
+			//std::cout << "\tData: ";
 			for (int i = 0; i < p->len; i++)
 			{
 				std::cout << (char)p->data[i];
 			}
 			std::cout << std::endl;
-			printf("\tLen:  %d\n", p->len);
+			//printf("\tLen:  %d\n", p->len);
 			p->data[p->len] = '\0';
 			//printf("\tMaxlen:  %d\n", p->maxlen);
 			//printf("\tStatus:  %d\n", p->status);
-			printf("\tAddress: %u %u\n", p->address.host, p->address.port);
+			//printf("\tAddress: %u %u\n", p->address.host, p->address.port);
 			handleNewClients(clients, p);
 			handleNetworkData(clients, p);
 
@@ -321,7 +281,7 @@ void handleNetworkData(Clients &clients, UDPpacket* p)
 			{
 				if (!(client->remoteIP.host == p->address.host && client->remoteIP.port == p->address.port))
 				{
-					printf("Sending message %s to %s:%s\n", packetString.c_str(), std::to_string(client->remoteIP.host).c_str(), std::to_string(client->remoteIP.port).c_str());
+					//printf("Sending message %s to %s:%s\n", packetString.c_str(), std::to_string(client->remoteIP.host).c_str(), std::to_string(client->remoteIP.port).c_str());
 					p->address = client->remoteIP;
 					// Send it
 					SDLNet_UDP_Send(serverSocket, -1, p);
@@ -330,7 +290,48 @@ void handleNetworkData(Clients &clients, UDPpacket* p)
 			SDLNet_FreePacket(p);
 		}
 	}
-	//processMessage(p);
+	else if (compareTypes(packetType, PACKET_HIT))
+	{
+		// Kill the player
+
+	}
+	else if (compareTypes(packetType, PACKET_SPAWN))
+	{
+		// Spawn a bullet to a position with velocity on everyone else's screens
+
+		Client* senderClient = 0;
+
+		for each (Client* client in clients)
+		{
+			// Get the client ID
+			if (client->remoteIP.host == p->address.host && client->remoteIP.port == p->address.port)
+			{
+				senderClient = client;
+				break;
+			}
+		}
+		if (senderClient != nullptr)
+		{
+
+			for each (Client* client in clients)
+			{
+				if (!(client->remoteIP.host == p->address.host && client->remoteIP.port == p->address.port))
+				{
+					//printf("Sending message %s to %s:%s\n", packetString.c_str(), std::to_string(client->remoteIP.host).c_str(), std::to_string(client->remoteIP.port).c_str());
+					p->address = client->remoteIP;
+					// Send it
+					SDLNet_UDP_Send(serverSocket, -1, p);
+				}
+			}
+			SDLNet_FreePacket(p);
+		}
+		else
+		{
+			//std::cout << '\a';
+			printf("Packet had unidentifiable or no prefix\n");
+		}
+		//processMessage(p);
+	}
 }
 
 void handleTimeouts(Clients &clients)

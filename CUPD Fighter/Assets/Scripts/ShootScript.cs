@@ -7,11 +7,8 @@ public class ShootScript : MonoBehaviour
     [SerializeField] GameObject bullet;
 
     // Update is called once per frame
-    void Update()
+    public void Shoot()
     {
-        if(Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            GameObject go = Instantiate(bullet, transform.position + transform.forward * 1.2f, transform.rotation);
-        }
+        GameObject go = Instantiate(bullet, transform.position + transform.forward * 1.2f, transform.rotation);
     }
 }
