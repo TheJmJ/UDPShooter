@@ -1,13 +1,8 @@
 set(SDL2_DIR ${CMAKE_SOURCE_DIR}/SDL2/SDL2/)
-set(SDL2_image_DIR ${CMAKE_SOURCE_DIR}/SDL2/SDL2_image/)
-set(SDL2_mixer_DIR ${CMAKE_SOURCE_DIR}/SDL2/SDL2_mixer/)
 set(SDL2_net_DIR ${CMAKE_SOURCE_DIR}/SDL2/SDL2_net/)
-set(SDL2_TTF_PATH ${CMAKE_SOURCE_DIR}/SDL2/SDL2_ttf/)
+
 message(${SDL2_DIR})
-message(${SDL2_image_DIR})
-message(${SDL2_mixer_DIR})
 message(${SDL2_net_DIR})
-message(${SDL2_TTF_PATH})
 
 macro (setup_server_exe)
 	find_package(SDL2 REQUIRED)
